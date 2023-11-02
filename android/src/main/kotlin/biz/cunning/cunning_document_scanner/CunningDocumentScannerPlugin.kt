@@ -37,7 +37,9 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "getPictures") {
             this.pendingResult = result
-            startScan()
+            val maxScan = call.argument("maxScan") ?: 100
+            val imageQuality = call.argument("imageQuality") ?: 100
+            startScan(maxScan, imageQuality)
         } else {
             result.notImplemented()
         }
@@ -105,7 +107,7 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     /**
      * create intent to launch document scanner and set custom options
      */
-    private fun createDocumentScanIntent(): Intent {
+    private fun createDocumentScanIntent(maxScan: Int, imageQuality: Int): Intent {
         val documentScanIntent = Intent(activity, DocumentScannerActivity::class.java)
         documentScanIntent.putExtra(
             DocumentScannerExtra.EXTRA_LET_USER_ADJUST_CROP,
@@ -113,7 +115,11 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         )
         documentScanIntent.putExtra(
             DocumentScannerExtra.EXTRA_MAX_NUM_DOCUMENTS,
-            100
+            maxScan
+        )
+        documentScanIntent.putExtra(
+            DocumentScannerExtra.EXTRA_CROPPED_IMAGE_QUALITY,
+            imageQuality
         )
 
         return documentScanIntent
@@ -123,8 +129,8 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     /**
      * add document scanner result handler and launch the document scanner
      */
-    private fun startScan() {
-        val intent = createDocumentScanIntent()
+    private fun startScan(maxScan: Int, imageQuality: Int) {
+        val intent = createDocumentScanIntent(maxScan, imageQuality)
         try {
             ActivityCompat.startActivityForResult(
                 this.activity,
